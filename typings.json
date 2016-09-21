@@ -1,0 +1,7 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/Colorfulstan/typed-overwolf/master/overwolf.d.ts",
+    "typings": "https://raw.githubusercontent.com/Colorfulstan/typed-overwolf/master/overwolf.d.ts"
+  }
+}
