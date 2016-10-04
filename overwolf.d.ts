@@ -29,11 +29,15 @@ declare namespace Overwolf {
 
         /** TODO: expand when adding more games ( ... | CSGO.TFeatures | ...) */
         type TFeatures = LeagueOfLegends.TFeatures
+        /** TODO: expand when adding more games ( ... | CSGO.TCategories | ...) */
+        type TCategories = LeagueOfLegends.TCategories
+        /** TODO: expand when adding more games ( ... | CSGO.TCategories | ...) */
+        type TEvents = LeagueOfLegends.TEvents
 
-        interface InfoUpdate<FeaturesType, CategoriesType> {
-            info: Info<CategoriesType>
+        interface InfoUpdate<F extends TFeatures, C extends TCategories>{
+            info: Info<C>
             /** The name of the feature this Info belongs to */
-            feature: FeaturesType
+            feature: F
         }
         /** might need to be decoded with decodeURI(JSON.parse(data))*/
         interface Info<T> {
@@ -44,12 +48,12 @@ declare namespace Overwolf {
             [key: string]: T
         }
 
-        interface EventUpdate<IEvent> {
-            events: Event<IEvent>[]
+        interface EventUpdate<T extends TEvents> {
+            events: IEvent<T>[]
         }
-        interface Event<IEvent> {
-            name: IEvent.name
-            data: IEvent.data
+        interface IEvent<T extends TEvents> {
+            name: T
+            data: string
         }
 
         namespace LeagueOfLegends {
@@ -633,12 +637,12 @@ interface OverwolfGames {
          * Fired when there are game info updates with a JSON object of the updates.
          * @since 0.96
          * */
-        onInfoUpdates2: OverwolfListenable<ODK.GameEvents.InfoUpdate>
+        onInfoUpdates2: OverwolfListenable<ODK.GameEvents.InfoUpdate<ODK.GameEvents.TFeatures, ODK.GameEvents.TCategories>>
         /**
          * Fired when there are new game events with a JSON object of the events information.
          * @since 0.96
          * */
-        onNewEvents: OverwolfListenable<ODK.GameEvents.EventUpdate>
+        onNewEvents: OverwolfListenable<ODK.GameEvents.EventUpdate<ODK.GameEvents.TEvents>>
     }
     /**
      * Returns an object with information about the currently running game, or null if no game is running.
