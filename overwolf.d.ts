@@ -1,6 +1,9 @@
-import Ow = Overwolf
+import ODK = Overwolf
 
 declare namespace Overwolf {
+    namespace IGameEvents {
+        type TInfoUpdate = string[]
+    }
     interface Static {
         utils: OverwolfUtils;
         profile: OverwolfProfile;
@@ -13,7 +16,176 @@ declare namespace Overwolf {
 
         version: string;
     }
+    /**
+     * Currently the boolean returns from the Game Events Provider are wrongly converted to JS from C#.
+     * To get the correct value (and prevent breaking code in case it actually gets changed to boolean values)
+     * use:
+     * var value = TBuggedBoolean + ""
+     * var booleanValue = JSON.parse(value.toLowerCase())
+     * */
+    type TBuggedBoolean = 'False' | 'True'
+
+    namespace GameEvents {
+
+        /** TODO: expand when adding more games ( ... | CSGO.TFeatures | ...) */
+        type TFeatures = LeagueOfLegends.TFeatures
+
+        interface InfoUpdate<FeaturesType, CategoriesType> {
+            info: Info<CategoriesType>
+            /** The name of the feature this Info belongs to */
+            feature: FeaturesType
+        }
+        /** might need to be decoded with decodeURI(JSON.parse(data))*/
+        interface Info<T> {
+            /** the name of the InfoDB property represented will be the property containing the actual data */
+            [CategoryName: string]: InfoData<T> // TODO: is this only this way for League or for all games?
+        }
+        interface InfoData<T> {
+            [key: string]: T
+        }
+
+        interface EventUpdate<IEvent> {
+            events: Event<IEvent>[]
+        }
+        interface Event<IEvent> {
+            name: IEvent.name
+            data: IEvent.data
+        }
+
+        namespace LeagueOfLegends {
+            type TInfoUpdate = InfoUpdate<TFeatures, TCategories>
+
+            type TFeatures = 'matchState'
+                | 'spellsAndAbilities'
+                | 'deathAndRespawn'
+                | 'kill'
+                | 'assist'
+                | 'matchState'
+                | 'gold'
+                | 'minions'
+                | 'summoner_info'
+                | 'gameMode'
+                | 'team'
+            type TCategories = 'summoner_info' | 'game_info'
+
+            /** TODO: add 'disabled' documentation */
+            interface InfoDB {
+                summoner_info: { // unreliable!
+                    /** The user’s Summoner Id
+                     * @since Game Events Provider 0.7.0*/
+                    id?: TODKNumericString
+                    /** The user’s region (EUE, EUW, etc.)
+                     * @since Game Events Provider 0.7.0 */
+                    region?: string,
+                    /** The user’s region (EUNE, EUW, etc.) (upperCase)
+                     * @since Game Events Provider 0.7.0 */
+                    champion?: string,
+                    /** The user’s summoner’s name (lowerCase)
+                     * @since Game Events Provider 0.7.0*/
+                    name?: string
+                    /** Marks whether the current champion can use the ult ability several times in a row
+                     * (like Elise or Jayce for example)
+                     * @since Game Events Provider 0.7.0 */
+                    championHasSubsequentUlts?: TBuggedBoolean
+                },
+                game_info: {
+                    /** current game mode
+                     * @since Game Events Provider 0.14.0
+                     * */
+                    gameMode?: 'classic'| 'tutorial'| 'spectator'
+                    /** @deprecated */
+                    game_mode?: 'classic'| 'tutorial'| 'spectator'
+                    /**
+                     * Needs to be decoded:
+                     * decodeURI(JSON.parse(data))
+                     * TODO: more accurate typing of the decoded value
+                     * @since Game Events Provider 0.7.0
+                     * */
+                    teams?: string
+                    /** amount of gold
+                     * @since Game Events Provider 0.7.0
+                     * */
+                    gold?: TODKNumericString
+                    /**
+                     * amount of enemy minions killed by the player
+                     * @since Game Events Provider 0.7.0
+                     * */
+                    minionKills?: TODKNumericString
+                    /**
+                     * amount of neutral minions killed by the player
+                     * @since Game Events Provider 0.7.0
+                     */
+                    neutralMinionKills?: TODKNumericString
+                    /** @since Game Events Provider 0.14.0 */
+                    matchStarted?: TBuggedBoolean
+                    /** @deprecated */
+                    match_started?: TBuggedBoolean
+                    /** @since Game Events Provider 0.14.0 */
+                    matchOutcome?: 'win' | 'lose'
+                }
+            }
+
+            type TEvents = 'ability'
+                | 'spell'
+                | 'death'
+                | 'respawn'
+                | 'kill'
+                | 'assist'
+                | 'matchStart'
+                | 'matchEnd'
+
+            interface Events {
+                /**
+                 * @event spell: player uses an ability - numbered 1-4
+                 * @event ability: player uses an summoner spell - numbered 1-2
+                 * @since Game Events Provider 0.14.0
+                 */
+                spellsAndAbilities: {
+                    name: 'ability' | 'spell'
+                    data: TODKNumericString
+                },
+                /**
+                 * @event death: player's champion died
+                 * @event respawn: player's champion respawned
+                 * @since Game Events Provider 0.14.0
+                 */
+                deathAndRespawn: {
+                    name: 'death' | 'respawn'
+                },
+                /**
+                 * @event killing another champion
+                 * @since Game Events Provider 0.7.0
+                 */
+                kill: {
+                    name: 'kill'
+                    data: {
+                        count: TODKNumericString
+                        label: 'kill' | 'double_kill' | 'triple_kill' | 'quadra_kill' | 'penta_kill'
+                    }
+                }
+                /**
+                 * Number of times this event happened in the match
+                 * @event When player assists in killing another champion
+                 * @since Game Events Provider 0.7.0
+                 */
+                assist: {
+                    name: 'assist'
+                    data: TODKNumericString
+                },
+                /**
+                 * @event matchStart: Match has started
+                 * @event matchEnd: Match has ended
+                 * @since Game Events Provider 0.14.0
+                 */
+                matchState: {
+                    name: 'matchStart' | 'matchEnd'
+                }
+            }
+        }
+    }
 }
+/** numeric value */
+type TODKNumericString = string
 ///////
 /// overwolf
 //////
@@ -442,6 +614,32 @@ interface ScreenshotEventArgs extends OverwolfEventArgs {
 /// overwolf.games
 ///////
 interface OverwolfGames {
+
+    /** An API for interacting with games using shared memory. */
+    events: {
+        /** Sets the required features from the provider.
+         * @since 0.93.1 */
+        setRequiredFeatures(features: ODK.GameEvents.TFeatures[], callback?: (arg: ODKCallbackArg & {supportedFeatures: string[]}) => void)
+        /**
+         * @since 0.95
+         * */
+        getInfo(callback: ODKCallbackArg & {res: Object}) // TODO: more accurate typing
+        /**
+         * Fired when there was an error in the game events system.
+         * @since 0.78
+         * */
+        onError: OverwolfListenable<{error: string, isRelaunching: boolean}>
+        /**
+         * Fired when there are game info updates with a JSON object of the updates.
+         * @since 0.96
+         * */
+        onInfoUpdates2: OverwolfListenable<ODK.GameEvents.InfoUpdate>
+        /**
+         * Fired when there are new game events with a JSON object of the events information.
+         * @since 0.96
+         * */
+        onNewEvents: OverwolfListenable<ODK.GameEvents.EventUpdate>
+    }
     /**
      * Returns an object with information about the currently running game, or null if no game is running.
      * @param {GameInfo) => void} callback Called with the currently running or active game info
@@ -463,6 +661,7 @@ interface OverwolfGames {
     onMajorFrameRateChange: OverwolfListenable<FramerateChange>;
 
     // TODO: inputTracking
+
 }
 
 interface FramerateChange {
