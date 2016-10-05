@@ -1,9 +1,6 @@
 import ODK = Overwolf
 
 declare namespace Overwolf {
-    namespace IGameEvents {
-        type TInfoUpdate = string[]
-    }
     interface Static {
         utils: OverwolfUtils;
         profile: OverwolfProfile;
@@ -34,7 +31,7 @@ declare namespace Overwolf {
         /** TODO: expand when adding more games ( ... | CSGO.TCategories | ...) */
         type TEvents = LeagueOfLegends.TEvents
 
-        interface InfoUpdate<F extends TFeatures, C extends TCategories>{
+        interface InfoUpdate<F extends TFeatures, C extends TCategories> {
             info: Info<C>
             /** The name of the feature this Info belongs to */
             feature: F
@@ -53,7 +50,7 @@ declare namespace Overwolf {
         }
         interface IEvent<T extends TEvents> {
             name: T
-            data: string
+            data: any
         }
 
         namespace LeagueOfLegends {
@@ -74,59 +71,63 @@ declare namespace Overwolf {
 
             /** TODO: add 'disabled' documentation */
             interface InfoDB {
-                summoner_info: { // unreliable!
-                    /** The user’s Summoner Id
-                     * @since Game Events Provider 0.7.0*/
-                    id?: TODKNumericString
-                    /** The user’s region (EUE, EUW, etc.)
-                     * @since Game Events Provider 0.7.0 */
-                    region?: string,
-                    /** The user’s region (EUNE, EUW, etc.) (upperCase)
-                     * @since Game Events Provider 0.7.0 */
-                    champion?: string,
-                    /** The user’s summoner’s name (lowerCase)
-                     * @since Game Events Provider 0.7.0*/
-                    name?: string
-                    /** Marks whether the current champion can use the ult ability several times in a row
-                     * (like Elise or Jayce for example)
-                     * @since Game Events Provider 0.7.0 */
-                    championHasSubsequentUlts?: TBuggedBoolean
-                },
-                game_info: {
-                    /** current game mode
-                     * @since Game Events Provider 0.14.0
-                     * */
-                    gameMode?: 'classic'| 'tutorial'| 'spectator'
-                    /** @deprecated */
-                    game_mode?: 'classic'| 'tutorial'| 'spectator'
-                    /**
-                     * Needs to be decoded:
-                     * decodeURI(JSON.parse(data))
-                     * TODO: more accurate typing of the decoded value
-                     * @since Game Events Provider 0.7.0
-                     * */
-                    teams?: string
-                    /** amount of gold
-                     * @since Game Events Provider 0.7.0
-                     * */
-                    gold?: TODKNumericString
-                    /**
-                     * amount of enemy minions killed by the player
-                     * @since Game Events Provider 0.7.0
-                     * */
-                    minionKills?: TODKNumericString
-                    /**
-                     * amount of neutral minions killed by the player
-                     * @since Game Events Provider 0.7.0
-                     */
-                    neutralMinionKills?: TODKNumericString
-                    /** @since Game Events Provider 0.14.0 */
-                    matchStarted?: TBuggedBoolean
-                    /** @deprecated */
-                    match_started?: TBuggedBoolean
-                    /** @since Game Events Provider 0.14.0 */
-                    matchOutcome?: 'win' | 'lose'
-                }
+                summoner_info: SummonerInfo,
+                game_info: GameInfo
+            }
+
+            interface SummonerInfo { // unreliable!
+                /** The user’s Summoner Id
+                 * @since Game Events Provider 0.7.0*/
+                id?: TODKNumericString
+                /** The user’s region (EUE, EUW, etc.)
+                 * @since Game Events Provider 0.7.0 */
+                region?: string,
+                /** The user’s region (EUNE, EUW, etc.) (upperCase)
+                 * @since Game Events Provider 0.7.0 */
+                champion?: string,
+                /** The user’s summoner’s name (lowerCase)
+                 * @since Game Events Provider 0.7.0*/
+                name?: string
+                /** Marks whether the current champion can use the ult ability several times in a row
+                 * (like Elise or Jayce for example)
+                 * @since Game Events Provider 0.7.0 */
+                championHasSubsequentUlts?: TBuggedBoolean
+            }
+
+            interface GameInfo {
+                /** current game mode
+                 * @since Game Events Provider 0.14.0
+                 * */
+                gameMode?: 'classic'| 'tutorial'| 'spectator'
+                /** @deprecated */
+                game_mode?: 'classic'| 'tutorial'| 'spectator'
+                /**
+                 * Needs to be decoded:
+                 * decodeURI(JSON.parse(data))
+                 * TODO: more accurate typing of the decoded value
+                 * @since Game Events Provider 0.7.0
+                 * */
+                teams?: string
+                /** amount of gold
+                 * @since Game Events Provider 0.7.0
+                 * */
+                gold?: TODKNumericString
+                /**
+                 * amount of enemy minions killed by the player
+                 * @since Game Events Provider 0.7.0
+                 * */
+                minionKills?: TODKNumericString
+                /**
+                 * amount of neutral minions killed by the player
+                 * @since Game Events Provider 0.7.0
+                 */
+                neutralMinionKills?: TODKNumericString
+                /** @since Game Events Provider 0.14.0 */
+                matchStarted?: TBuggedBoolean
+                /** @deprecated */
+                match_started?: TBuggedBoolean
+                /** @since Game Events Provider 0.14.0 */
+                matchOutcome?: 'win' | 'lose'
             }
 
             type TEvents = 'ability'
@@ -138,30 +139,27 @@ declare namespace Overwolf {
                 | 'matchStart'
                 | 'matchEnd'
 
-            interface Events {
+            namespace Events {
                 /**
                  * @event spell: player uses an ability - numbered 1-4
                  * @event ability: player uses an summoner spell - numbered 1-2
                  * @since Game Events Provider 0.14.0
                  */
-                spellsAndAbilities: {
-                    name: 'ability' | 'spell'
+                interface spellsAndAbilities extends ODK.GameEvents.IEvent<'ability' | 'spell'> {
                     data: TODKNumericString
-                },
+                }
                 /**
                  * @event death: player's champion died
                  * @event respawn: player's champion respawned
                  * @since Game Events Provider 0.14.0
                  */
-                deathAndRespawn: {
-                    name: 'death' | 'respawn'
-                },
+                interface deathAndRespawn extends ODK.GameEvents.IEvent<'death' | 'respawn'> {
+                }
                 /**
                  * @event killing another champion
                  * @since Game Events Provider 0.7.0
                  */
-                kill: {
-                    name: 'kill'
+                interface kill extends ODK.GameEvents.IEvent<'kill'> {
                     data: {
                         count: TODKNumericString
                         label: 'kill' | 'double_kill' | 'triple_kill' | 'quadra_kill' | 'penta_kill'
@@ -172,17 +170,15 @@ declare namespace Overwolf {
                  * @event When player assists in killing another champion
                  * @since Game Events Provider 0.7.0
                  */
-                assist: {
-                    name: 'assist'
+                interface assist extends ODK.GameEvents.IEvent<'assist'> {
                     data: TODKNumericString
-                },
+                }
                 /**
                  * @event matchStart: Match has started
                  * @event matchEnd: Match has ended
                  * @since Game Events Provider 0.14.0
                  */
-                matchState: {
-                    name: 'matchStart' | 'matchEnd'
+                interface matchState extends ODK.GameEvents.IEvent<'matchStart' | 'matchEnd'> {
                 }
             }
         }
@@ -226,7 +222,7 @@ interface OverwolfEventDispatcher<TEventListenerArgs> {
 /** Argument passed to a callback */
 interface ODKCallbackArg {
     status: 'success' | 'error'
-    /** only available when status === 'error' stating the reason for failure*/
+    /** only available when status === 'error' stating the reason for failure */
     error?: string
 }
 
@@ -627,7 +623,7 @@ interface OverwolfGames {
         /**
          * @since 0.95
          * */
-        getInfo(callback: ODKCallbackArg & {res: Object}) // TODO: more accurate typing
+        getInfo(callback: (arg: ODKCallbackArg & {res: any, /** shown when status is "error" */ reason?: string}) => void) // TODO: more accurate typing for res
         /**
          * Fired when there was an error in the game events system.
          * @since 0.78
@@ -648,7 +644,7 @@ interface OverwolfGames {
      * Returns an object with information about the currently running game, or null if no game is running.
      * @param {GameInfo) => void} callback Called with the currently running or active game info
      */
-    getRunningGameInfo(callback: (information: GameInfo) => void): void;
+    getRunningGameInfo(callback: (information: ODKGameInfo) => void): void;
 
     /** Fired when the game ifno is updated, including game name, game running, game terminated, game changing focus, etc.
      * @event
@@ -674,22 +670,54 @@ interface FramerateChange {
 }
 
 interface GameInfoChangeData {
-    gameInfo: GameInfo;
+    gameInfo: ODKGameInfo;
     resolutionChanged: boolean;
     focusChanged: boolean;
     runningChanged: boolean;
     gameChanged: boolean;
 }
 
-interface GameInfo {
-    isInFocus: boolean;
-    isRunning: boolean;
-    allowsVideoCapture: boolean;
-    title: string;
-    id: number;
-    width: number;
-    height: number;
-    renderers: string[];
+interface ODKGameInfo {
+    /** Returns whether the game represented is currently in focus.
+     * @since 0.78 */
+    isInFocus: boolean
+    /** Returns whether the game represented is currently running.
+     * @since 0.78 */
+    isRunning: boolean
+    /** Returns whether the game represented allows video to be captured.
+     * @since 0.78 */
+    allowsVideoCapture: boolean
+    /** Returns the title of the represented game.
+     * @since 0.78 */
+    title: string
+    /** Returns the id of the represented game.
+     * @since 0.78 */
+    id: number
+    /** Returns the pixel width of the represented game window.
+     * @since 0.78*/
+    width: number
+    /** Returns the pixel height of the represented game window.
+     * @since 0.78 */
+    height: number
+    /** Returns the game reported (logical) pixel width of the represented game window.
+     * @since 0.78 */
+    logicalWidth: number
+    /** Returns the game reported (logical) pixel height of the represented game window.
+     * @since 0.78 */
+    logicalHeight: number
+    /** Returns an array of the rendering technology names supported by the running game.
+     * @since 0.78 */
+    renderers: string[]
+    /** Returns the rendering technology detected by the running game.
+     * @since 0.89.102 */
+    detectedRenderer: string
+    /** Returns the game process commandline
+     * @since 0.78 */
+    commandLine: string
+    /** undocumented TODO */
+    sessionId: any
+    /** undocumented TODO */
+    executionPath: any
 }
 
 ///////
