@@ -32,11 +32,11 @@ declare namespace Overwolf {
     namespace GameEvents {
 
         /** All defined features */
-        type TFeatures = LOL.TFeatures // TODO: expand when adding more games ( ... | CSGO.TFeatures | ...)
+        type TFeatures = LOL.TFeaturesLOL // TODO: expand when adding more games ( ... | CSGO.TFeaturesCSGO | ...)
         /** All defined categories */
-        type TCategories = LOL.TCategories // TODO: expand when adding more games ( ... | CSGO.TCategories | ...)
+        type TCategories = LOL.TCategoriesLOL // TODO: expand when adding more games ( ... | CSGO.TCategoriesCSGO | ...)
         /** All defined Events */
-        type TEvents = LOL.TEvents // TODO: expand when adding more games ( ... | CSGO.TEvents | ...)
+        type TEvents = LOL.TEventsLOL // TODO: expand when adding more games ( ... | CSGO.TEventsCSGO | ...)
 
         /** abstract Result Type for overwolf.games.events.getInfo */
         interface GameEventsInfoDB <F extends AvailableFeaturesMap> {
@@ -81,7 +81,7 @@ declare namespace Overwolf {
         }
 
         namespace LOL {
-            type TFeatures =
+            type TFeaturesLOL =
                 'matchState'
                     | 'spellsAndAbilities'
                     | 'deathAndRespawn'
@@ -92,7 +92,7 @@ declare namespace Overwolf {
                     | 'summoner_info'
                     | 'gameMode'
                     | 'teams'
-            interface AvailableFeaturesMap extends Overwolf.GameEvents.AvailableFeaturesMap {
+            interface AvailableFeaturesMapLOL extends Overwolf.GameEvents.AvailableFeaturesMap {
                 matchState: TBuggedBoolean
                 spellsAndAbilities: TBuggedBoolean
                 deathAndRespawn: TBuggedBoolean
@@ -104,14 +104,15 @@ declare namespace Overwolf {
                 gameMode: TBuggedBoolean
                 teams: TBuggedBoolean
             }
-            type TCategories = 'summoner_info' | 'game_info' | 'level'
+            type TCategoriesLOL = 'summoner_info' | 'game_info' | 'level'
             interface InfoUpdateDataLOL extends InfoUpdateData {
                 summoner_info?: SummonerInfo
-                game_info?: GameInfo
+                game_info?: GameInfoLOL
                 level?: {level: TODKNumericString}
             }
+            type InfoUpdateLOL = InfoUpdate<TFeaturesLOL, InfoUpdateDataLOL>
 
-            type GameEventsInfoDBLOL = Overwolf.GameEvents.GameEventsInfoDB<AvailableFeaturesMap> & InfoUpdateDataLOL
+            type GameEventsInfoDBLOL = Overwolf.GameEvents.GameEventsInfoDB<AvailableFeaturesMapLOL> & InfoUpdateDataLOL
 
             /** TODO: add 'disabled feature' documentation */
 
@@ -134,7 +135,7 @@ declare namespace Overwolf {
                 championHasSubsequentUlts?: TBuggedBoolean
             }
 
-            interface GameInfo {
+            interface GameInfoLOL {
                 /** current game mode
                  * @since Game Events Provider 0.14.0
                  * */
@@ -172,7 +173,7 @@ declare namespace Overwolf {
             }
 
 
-            type TEvents = 'ability'
+            type TEventsLOL = 'ability'
                 | 'spell'
                 | 'death'
                 | 'respawn'
@@ -185,45 +186,54 @@ declare namespace Overwolf {
             type EventUpdateLOL = EventUpdate<EventDataLOL>
 
             namespace Events {
+                type TSpellsAndAbilitiesEvent = 'ability' | 'spell'
                 /**
                  * @event "spell": player uses an ability - numbered 1-4
                  * @event "ability": player uses an summoner spell - numbered 1-2
                  * @since Game Events Provider 0.14.0
                  */
-                interface spellsAndAbilities extends ODK.GameEvents.EventData<'ability' | 'spell'> {
+                interface spellsAndAbilities extends ODK.GameEvents.EventData<TSpellsAndAbilitiesEvent> {
                     data: TODKNumericString
                 }
+
+                type TDeathAndRespawnEvent = 'death' | 'respawn'
                 /**
                  * @event "death": player's champion died
                  * @event "respawn": player's champion respawned
                  * @since Game Events Provider 0.14.0
                  */
-                interface deathAndRespawn extends ODK.GameEvents.EventData<'death' | 'respawn'> {
+                interface deathAndRespawn extends ODK.GameEvents.EventData<TDeathAndRespawnEvent> {
                 }
+
+                type TKillEvent = 'kill'
                 /**
                  * @event "kill": killing another champion
                  * @since Game Events Provider 0.7.0
                  */
-                interface kill extends ODK.GameEvents.EventData<'kill'> {
+                interface kill extends ODK.GameEvents.EventData<TKillEvent> {
                     data: {
                         count: TODKNumericString
                         label: 'kill' | 'double_kill' | 'triple_kill' | 'quadra_kill' | 'penta_kill'
                     }
                 }
+
+                type TAssistEvent = 'assist'
                 /**
                  * Number of times this event happened in the match
                  * @event "assist": When player assists in killing another champion
                  * @since Game Events Provider 0.7.0
                  */
-                interface assist extends ODK.GameEvents.EventData<'assist'> {
+                interface assist extends ODK.GameEvents.EventData<TAssistEvent> {
                     data: TODKNumericString
                 }
+
+                type TMatchStateEvent = 'matchStart' | 'matchEnd'
                 /**
                  * @event "matchStart": Match has started
                  * @event "matchEnd": Match has ended
                  * @since Game Events Provider 0.14.0
                  */
-                interface matchState extends ODK.GameEvents.EventData<'matchStart' | 'matchEnd'> {
+                interface matchState extends ODK.GameEvents.EventData<TMatchStateEvent> {
                 }
             }
         }
