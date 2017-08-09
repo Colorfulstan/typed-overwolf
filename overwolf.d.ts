@@ -16,6 +16,7 @@ declare namespace Overwolf {
 
         version: string;
     }
+
     /**
      * Currently the boolean returns from the Game Events Provider are wrongly converted to JS from C#.
      * To get the correct value (and prevent breaking code in case it actually gets changed to boolean values)
@@ -39,9 +40,10 @@ declare namespace Overwolf {
         type TEvents = LOL.TEventsLOL // TODO: expand when adding more games ( ... | CSGO.TEventsCSGO | ...)
 
         /** abstract Result Type for overwolf.games.events.getInfo */
-        interface GameEventsInfoDB <F extends AvailableFeaturesMap> {
+        interface GameEventsInfoDB<F extends AvailableFeaturesMap> {
             /** (should be) available for all games */
             features: F
+
             /** additional properties depend on the game */
             [key: string]: Object
         }
@@ -53,15 +55,15 @@ declare namespace Overwolf {
             [featureName: string]: TBuggedBoolean
         }
 
-        type InfoCallback<F extends AvailableFeaturesMap, T extends GameEventsInfoDB<F>> = (arg: InfoCBArg<F,T>) => any
+        type InfoCallback<F extends AvailableFeaturesMap, T extends GameEventsInfoDB<F>> = (arg: InfoCBArg<F, T>) => any
         type InfoCBArg<F extends AvailableFeaturesMap, T extends GameEventsInfoDB<F>> =
             ODKCallbackArg
-                & {/** shown when status is "error" */ reason?: string}
-                & {res: T}
+            & { /** shown when status is "error" */ reason?: string }
+            & { res: T }
 
         type NewEventsCallback<E extends EventData<TEvents>> = (arg: EventUpdate<E>) => void
         type InfoUpdateCallback<F extends TFeatures, I extends InfoUpdateData> = (arg: InfoUpdate<F, I>) => void
-        type ErrorListener = OverwolfListenable<{error: string, isRelaunching: boolean}>
+        type ErrorListener = OverwolfListenable<{ error: string, isRelaunching: boolean }>
 
         interface InfoUpdate<F extends TFeatures, I extends InfoUpdateData> {
             info: I
@@ -70,11 +72,12 @@ declare namespace Overwolf {
         }
 
         /** abstract type for game-info results */
-        interface InfoUpdateData { [categoryName: string]: any }
+        interface InfoUpdateData {[categoryName: string]: any}
 
         interface EventUpdate<E extends EventData<TEvents>> {
             events: E[]
         }
+
         interface EventData<T extends TEvents> {
             name: T
             data: any
@@ -83,19 +86,26 @@ declare namespace Overwolf {
         namespace LOL {
             type TFeaturesLOL =
                 'matchState'
-                    | 'spellsAndAbilities'
-                    | 'deathAndRespawn'
-                    | 'kill'
-                    | 'assist'
-                    | 'gold'
-                    | 'minions'
-                    | 'summoner_info'
-                    | 'gameMode'
-                    | 'teams'
+                | 'spellsAndAbilities'
+                | 'death'
+                | 'respawn'
+                /** @deprecated */
+                | 'deathAndRespawn'
+                | 'kill'
+                | 'assist'
+                | 'gold'
+                | 'minions'
+                | 'summoner_info'
+                | 'gameMode'
+                | 'teams'
+
             interface AvailableFeaturesMapLOL extends Overwolf.GameEvents.AvailableFeaturesMap {
                 matchState: TBuggedBoolean
                 spellsAndAbilities: TBuggedBoolean
+                /** @deprecated use solo events / features instead*/
                 deathAndRespawn: TBuggedBoolean
+                death: TBuggedBoolean
+                respawn: TBuggedBoolean
                 kill: TBuggedBoolean
                 assist: TBuggedBoolean
                 gold: TBuggedBoolean
@@ -104,12 +114,15 @@ declare namespace Overwolf {
                 gameMode: TBuggedBoolean
                 teams: TBuggedBoolean
             }
+
             type TCategoriesLOL = 'summoner_info' | 'game_info' | 'level'
+
             interface InfoUpdateDataLOL extends InfoUpdateData {
                 summoner_info?: SummonerInfo
                 game_info?: GameInfoLOL
-                level?: {level: TODKNumericString}
+                level?: { level: TODKNumericString }
             }
+
             type InfoUpdateLOL = InfoUpdate<TFeaturesLOL, InfoUpdateDataLOL>
 
             type GameEventsInfoDBLOL = Overwolf.GameEvents.GameEventsInfoDB<AvailableFeaturesMapLOL> & InfoUpdateDataLOL
@@ -123,7 +136,7 @@ declare namespace Overwolf {
                 /** The user’s region (EUE, EUW, etc.)
                  * @since Game Events Provider 0.7.0 */
                 region?: string,
-                /** The user’s region (EUNE, EUW, etc.) (upperCase)
+                /** The user’s champion as used for keys in RIOT API EXCEPT for FiddleSticks -> Fiddlesticks on RIOT
                  * @since Game Events Provider 0.7.0 */
                 champion?: string,
                 /** The user’s summoner’s name (lowerCase)
@@ -137,11 +150,12 @@ declare namespace Overwolf {
 
             interface GameInfoLOL {
                 /** current game mode
+                 * TODO: check if 'classic' has been removed or it's just a documentation error http://developers.overwolf.com/documentation/sdk/overwolf/games/events/league-of-legends/
                  * @since Game Events Provider 0.14.0
                  * */
-                gameMode?: 'classic'| 'tutorial'| 'spectator'
+                gameMode?: 'classic' | 'tutorial' | 'spectator' | 'ranked' | 'custom'
                 /** @deprecated */
-                game_mode?: 'classic'| 'tutorial'| 'spectator'
+                game_mode?: 'classic' | 'tutorial' | 'spectator' | 'ranked' | 'custom'
                 /**
                  * Needs to be decoded:
                  * decodeURI(JSON.parse(data))
@@ -170,6 +184,18 @@ declare namespace Overwolf {
                 match_started?: TBuggedBoolean
                 /** @since Game Events Provider 0.14.0 */
                 matchOutcome?: 'win' | 'lose'
+                /** Total number of different kill types achieved within a game by the player
+                 * @since Game Events Provider 0.35 */
+                kills: TODKNumericString
+                doubleKills: TODKNumericString
+                tripleKills: TODKNumericString
+                quadraKills: TODKNumericString
+                pentaKills: TODKNumericString
+
+                /**  Number of deaths for this session
+                 * @since Game Events Provider 0.77.4 */
+                deaths
+
             }
 
 
@@ -182,42 +208,75 @@ declare namespace Overwolf {
                 | 'matchStart'
                 | 'matchEnd'
 
-            type EventDataLOL = Events.assist | Events.deathAndRespawn | Events.kill | Events.matchState | Events.spellsAndAbilities
+            type EventDataLOL =
+                Events.assist
+                | Events.deathAndRespawn
+                | Events.death
+                | Events.respawn
+                | Events.kill
+                | Events.matchState
+                | Events.spellsAndAbilities
             type EventUpdateLOL = EventUpdate<EventDataLOL>
 
             namespace Events {
                 type TSpellsAndAbilitiesEvent = 'ability' | 'spell'
+
                 /**
-                 * @event "spell": player uses an ability - numbered 1-4
-                 * @event "ability": player uses an summoner spell - numbered 1-2
+                 * @event "ability": player uses an ability - numbered 1-4
+                 * @event "spell": player uses an summoner spell - numbered 1-2 // TODO: is this still accurate?
                  * @since Game Events Provider 0.14.0
                  */
                 interface spellsAndAbilities extends ODK.GameEvents.EventData<TSpellsAndAbilitiesEvent> {
                     data: TODKNumericString
                 }
 
-                type TDeathAndRespawnEvent = 'death' | 'respawn'
+                type TDeathEvent = 'death'
+                type TRespawnEvent = 'respawn' // TODO: respawn event will be removed!?
+                /**
+                 * @event "death": player's champion died
+                 * @since Game Events Provider 0.77.4
+                 */
+                interface death extends ODK.GameEvents.EventData<TDeathEvent> {
+                }
+
+                /**
+                 * @event "respawn": player respawned
+                 * @since Game Events Provider 0.77.4
+                 */
+                interface respawn extends ODK.GameEvents.EventData<TRespawnEvent> {
+                }
+
+                /** @deprecated with death / respawn solo events */
+                type TDeathAndRespawnEvent = 'death' | 'respawn' // TODO: respawn event will be removed
                 /**
                  * @event "death": player's champion died
                  * @event "respawn": player's champion respawned
                  * @since Game Events Provider 0.14.0
+                 * @deprecated with death / respawn solo events
                  */
                 interface deathAndRespawn extends ODK.GameEvents.EventData<TDeathAndRespawnEvent> {
                 }
 
+
                 type TKillEvent = 'kill'
+
                 /**
                  * @event "kill": killing another champion
                  * @since Game Events Provider 0.7.0
                  */
                 interface kill extends ODK.GameEvents.EventData<TKillEvent> {
                     data: {
+                        /** Number of times this kill type happened in the match */
                         count: TODKNumericString
                         label: 'kill' | 'double_kill' | 'triple_kill' | 'quadra_kill' | 'penta_kill'
+                        /** The total kills in this match
+                         * @since Game Events Provider 0.35.0 */
+                        totalKills: TODKNumericString
                     }
                 }
 
                 type TAssistEvent = 'assist'
+
                 /**
                  * Number of times this event happened in the match
                  * @event "assist": When player assists in killing another champion
@@ -228,6 +287,7 @@ declare namespace Overwolf {
                 }
 
                 type TMatchStateEvent = 'matchStart' | 'matchEnd'
+
                 /**
                  * @event "matchStart": Match has started
                  * @event "matchEnd": Match has ended
@@ -235,6 +295,8 @@ declare namespace Overwolf {
                  */
                 interface matchState extends ODK.GameEvents.EventData<TMatchStateEvent> {
                 }
+
+                // TODO: add announcer events http://developers.overwolf.com/documentation/sdk/overwolf/games/events/league-of-legends/
             }
         }
     }
@@ -242,7 +304,7 @@ declare namespace Overwolf {
 /** numeric value */
 type TODKNumericString = string
 /** will be 'none' if click was used to drag a window */
-type TODKMouseButton = 'none'|'left'|'middle'|'right'|'xbutton1'|'xbutton2'
+type TODKMouseButton = 'none' | 'left' | 'middle' | 'right' | 'xbutton1' | 'xbutton2'
 ///////
 /// overwolf
 //////
@@ -255,6 +317,7 @@ interface OverwolfEventArgs { // TODO: remove this in favor of ODKCallbackArg
 /** Denotes a listenable that just accepts an empty action. */
 interface OverwolfParameterlessListenable {
     addListener(callback: () => void): void;
+
     removeListener(callback: () => void): void;
 }
 
@@ -262,10 +325,13 @@ interface OverwolfParameterlessListenable {
  its publications do not have a status. */
 interface OverwolfListenable<TArgType> {
     addListener(callback: (arg: TArgType) => void): void;
+
     removeListener(callback: (arg: TArgType) => void): void;
 }
+
 interface OverwolfGenericListenable<TCallbackType> {
     addListener(callback: TCallbackType): void;
+
     removeListener(callback: TCallbackType): void;
 }
 
@@ -277,6 +343,7 @@ interface OverwolfEventDispatcher<TEventListenerArgs> {
      * @param {TEventListenerArgs) => void} callback Invoked when the event is called.
      */
     addListener(callback: (args: TEventListenerArgs) => any): void;
+
     removeListener(callback: (args: TEventListenerArgs) => any): void;
 }
 
@@ -442,30 +509,40 @@ interface StartStreamEventArgs extends OverwolfEventArgs {
 ///////
 /// overwolf.windows
 //////
-interface OverwolfWindows {
+interface OverwolfWindows { // TODO: update
     /**
      * Calls the given function with the current window object as a parameter.
      * @param {ODKWindow) => void} callback will be called with the current window object as a parameter.
      */
-    getCurrentWindow(callback: (arg: ODKCallbackArg & {window: ODKWindow}) => void): void;
+    getCurrentWindow(callback: (arg: ODKCallbackArg & { window: ODKWindow }) => void): void;
+
     /**
      * Creates or returns a window by the window name that was declared in the manifest.
      * @param windowName The name of the window that was declared in the data.windows section in the manifest.
      * @param callback A callback function which will be called with the requested window as a parameter.
      */
-    obtainDeclaredWindow(windowId: ODKWindowId, callback: (arg: ODKCallbackArg & {window: ODKWindow}) => void): void;
+    obtainDeclaredWindow(windowId: ODKWindowId, callback: (arg: ODKCallbackArg & { window: ODKWindow }) => void): void;
+
+    /**
+     * Returns an all open windows as objects. The objects can be manipulated like any other window
+     * @since 0.92.200
+     */
+    getOpenWindows(callback: (result: { [windowName: string]: Window }) => void): void;
+
     /**
      * Start dragging a window.
      * @param {string} windowId The ID of the window to drag.
      * @param {function} callback called when the drag is finished.
      */
     dragMove(windowId: ODKWindowId, callback?: () => void): void;
+
     /**
      * Start resizing the window from a specific edge or corner.
      * @param {string}         windowId The ID of the window to resize.
      * @param {ODKWindowDragEdge} edge     The edge or corner from which to resize the window.
      */
     dragResize(windowId: ODKWindowId, edge: ODKWindowDragEdge): void;
+
     /**
      * Change the window size to the new width and height in pixels.
      * @param {string} windowId the ID of the window to change size.
@@ -474,6 +551,7 @@ interface OverwolfWindows {
      * @param {()  =>       void} callback A callback which is called when the size change is completed.
      */
     changeSize(windowId: ODKWindowId, width: number, height: number, callback?: () => void): void;
+
     /**
      * Change the window position in pixels from the top left corner.
      * @param {string} windowId the ID of the window to change size.
@@ -482,31 +560,35 @@ interface OverwolfWindows {
      * @param {()  =>       void} callback A callback which is called when the position change is completed.
      */
     changePosition(windowId: ODKWindowId, left: number, top: number, callback?: () => void): void;
+
     /**
      * Closes the window.
      * @param {string} windowId The ID of the window to close.
      * @param {()  =>       void}        callback Called after the window is closed.
      */
-    close(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & {window_id: string}) => void): void;
+    close(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & { window_id: string }) => void): void;
+
     /**
      * Minimizes the window.
      * @param windowId The ID or name of the window to minimize.
      * @param callback Called after the window is minimized.
      */
-    minimize(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & {window_id: string}) => void): void;
+    minimize(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & { window_id: string }) => void): void;
+
     /**
      * Maximizes the window.
      * @param {string} windowId The ID of the window to maximize.
      * @param {()  =>       void}        callback Called after the window is maximized.
      */
     maximize(windowId: ODKWindowId, callback?: () => void): void;
+
     /**
      * Restores the window.
      * NOTE: currently (0.97) only works with the windowId, not the name
      * @param {string} windowId The ID of the window to restore.
      * @param {()  =>       void}        callback Called after the window is restored.
      */
-    restore(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & {window_id: string}) => void): void;
+    restore(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & { window_id: string }) => void): void;
 
 
     /**
@@ -516,14 +598,14 @@ interface OverwolfWindows {
      * @param callback Called with the window state.
      */
     getWindowState(windowId: ODKWindowId,
-                   callback: (arg: ODKCallbackArg & {window_id: string, window_state: ODKWindowStates}) => void
+                   callback: (arg: ODKCallbackArg & { window_id: string, window_state: ODKWindowStates }) => void
     ): void
 
     /** Returns the state of all windows owned by the app (normal/minimized/maximized/closed).
      * @param callback Called with an object containing the states of the windows.
      * @since 0.90.200
      * */
-    getWindowsStates(callback: (arg: ODKCallbackArg & {result: {[windowName: string]: ODKWindowStates}}) => void): void
+    getWindowsStates(callback: (arg: ODKCallbackArg & { result: { [windowName: string]: ODKWindowStates } }) => void): void
 
     /**
      * Change the window’s topmost status. Handle with care as topmost windows can negatively impact user experience.
@@ -558,16 +640,17 @@ interface OverwolfWindows {
 
     onMessageReceived: OverwolfEventDispatcher<ODKMessage>
 }
+
 type ODKWindowDragEdge =
     'None'
-        | 'Left'
-        | 'Right'
-        | 'Top'
-        | 'Bottom'
-        | 'TopLeft'
-        | 'TopRight'
-        | 'BottomLeft'
-        | 'BottomRight'
+    | 'Left'
+    | 'Right'
+    | 'Top'
+    | 'Bottom'
+    | 'TopLeft'
+    | 'TopRight'
+    | 'BottomLeft'
+    | 'BottomRight'
 
 type ODKWindowStates = 'normal' | 'minimized' | 'maximized' | 'closed'
 
@@ -696,7 +779,7 @@ interface OverwolfGames {
      * @updated 2016/12/20 Client v0.101.15
      */
     getGameInfo(GameClassId: TODKGameClassId,
-                callback: (arg: ODKCallbackArg & {gameInfo?: ODKStaticGameInfo}) => void
+                callback: (arg: ODKCallbackArg & { gameInfo?: ODKStaticGameInfo }) => void
     ): void
 
     /** An API for interacting with games using shared memory. */
@@ -705,9 +788,9 @@ interface OverwolfGames {
          * @since 0.93.1 */
         setRequiredFeatures(features: ODK.GameEvents.TFeatures[],
                             callback?: (arg: ODKCallbackArg & {
-                                /** Array with the names of all the supported features from the given names */
-                                supportedFeatures: string[]
-                            }
+                                            /** Array with the names of all the supported features from the given names */
+                                            supportedFeatures: string[]
+                                        }
                             ) => void
         )
         /**
@@ -716,7 +799,7 @@ interface OverwolfGames {
          * @since 0.95
          * @updated 2016/12/20 Client v0.101.15
          * */
-        getInfo<F extends Overwolf.GameEvents.AvailableFeaturesMap,T extends Overwolf.GameEvents.GameEventsInfoDB<F>> (callback: Overwolf.GameEvents.InfoCallback<F,T>)
+        getInfo<F extends Overwolf.GameEvents.AvailableFeaturesMap, T extends Overwolf.GameEvents.GameEventsInfoDB<F>> (callback: Overwolf.GameEvents.InfoCallback<F, T>)
         /**
          * Fired when there was an error in the game events system.
          * @since 0.78
@@ -752,34 +835,34 @@ interface OverwolfGames {
          * @since 0.92.200
          * */
         getActivityInformation(callback: (arg: ODKCallbackArg & {
-            activity: {
-                /** ?? active time ??
-                 * TODO: when does tracking start and stop?
-                 * */
-                aTime: number
-                /** actions per minute
-                 * TODO: over what timespan? When does this tracking start and end?
-                 * */
-                apm: number
-                /** idle time */
-                iTime: number
-                keyboard: {
-                    keys: {[idkWhat: string]: number} // TODO: keyboard-key key-names format
-                    total: number
-                },
-                mouse: {
-                    /** distance travelled
-                     * TODO: when does tracking start and stop?
-                     * */
-                    dist: number
-                    keys: {
-                        // M_Left: 1
-                        [idkWhat: string]: number // TODO: mouse-key key-names format
-                    }
-                }
-            }
-        }
-        ) => void
+                                              activity: {
+                                                  /** ?? active time ??
+                                                   * TODO: when does tracking start and stop?
+                                                   * */
+                                                  aTime: number
+                                                  /** actions per minute
+                                                   * TODO: over what timespan? When does this tracking start and end?
+                                                   * */
+                                                  apm: number
+                                                  /** idle time */
+                                                  iTime: number
+                                                  keyboard: {
+                                                      keys: { [idkWhat: string]: number } // TODO: keyboard-key key-names format
+                                                      total: number
+                                                  },
+                                                  mouse: {
+                                                      /** distance travelled
+                                                       * TODO: when does tracking start and stop?
+                                                       * */
+                                                      dist: number
+                                                      keys: {
+                                                          // M_Left: 1
+                                                          [idkWhat: string]: number // TODO: mouse-key key-names format
+                                                      }
+                                                  }
+                                              }
+                                          }
+                               ) => void
         ): void // TODO
 
         /** Returns the input last mouse position in game. the data includes the mouse position and a boolean
@@ -787,18 +870,18 @@ interface OverwolfGames {
          *  @since 0.93.6.0
          *  @untested taken straight from the docs */
         getMousePosition(callback: (arg: ODKCallbackArg & {
-            mousePosition: {
-                x: number
-                y: number
-                onGame: boolean
-                /** TODO: what's this?
-                 *  */
-                handle: {
-                    value: number
-                }
-            }
-        }
-        ) => void
+                                        mousePosition: {
+                                            x: number
+                                            y: number
+                                            onGame: boolean
+                                            /** TODO: what's this?
+                                             *  */
+                                            handle: {
+                                                value: number
+                                            }
+                                        }
+                                    }
+                         ) => void
         ): void
 
         /**
@@ -807,7 +890,7 @@ interface OverwolfGames {
          * NOTE: only works while a game is running
          * @since 0.78
          */
-        onKeyUp: OverwolfListenable<{key: string, onGame: boolean}> /** TODO: typing key */
+        onKeyUp: OverwolfListenable<{ key: string, onGame: boolean }> /** TODO: typing key */
 
         /**
          * Fired when a keyboard key has been pressed.
@@ -815,7 +898,7 @@ interface OverwolfGames {
          * NOTE: only works while a game is running
          * @since 0.78
          */
-        onKeyDown: OverwolfListenable<{key: string, onGame: boolean}> /** TODO: typing key */
+        onKeyDown: OverwolfListenable<{ key: string, onGame: boolean }> /** TODO: typing key */
         /**
          * Fired when a mouse key has been released.
          * The event information includes whether the left or white mouse button was clicked (button),
@@ -823,7 +906,7 @@ interface OverwolfGames {
          * NOTE: only works while a game is running
          * @since 0.78
          */
-        onMouseUp: OverwolfListenable<{button: TODKMouseButton, onGame: boolean, x: number, y: number}> /** TODO:
+        onMouseUp: OverwolfListenable<{ button: TODKMouseButton, onGame: boolean, x: number, y: number }> /** TODO:
          typing
          button */
 
@@ -834,7 +917,7 @@ interface OverwolfGames {
          * NOTE: only works while a game is running
          * @since 0.78
          */
-        onMouseDown: OverwolfListenable<{button: TODKMouseButton, onGame: boolean, x: number, y: number}>
+        onMouseDown: OverwolfListenable<{ button: TODKMouseButton, onGame: boolean, x: number, y: number }>
     }
 
     /** Fired when the game ifno is updated, including game name, game running, game terminated, game changing focus, etc.
@@ -870,7 +953,7 @@ interface OverwolfGames {
      *  }
      ```
      */
-    onGameRendererDetected: OverwolfListenable<{detectedRenderer: string}>
+    onGameRendererDetected: OverwolfListenable<{ detectedRenderer: string }>
 
     // TODO: inputTracking
 
@@ -1064,6 +1147,7 @@ interface ODKStaticGameInfo { // http://developers.overwolf.com/documentation/sd
         XPSupport: number
     }
 }
+
 /** @updated 2016/12/20 Client v0.101.15 */
 interface ODKRunningGameInfo { // http://developers.overwolf.com/documentation/sdk/overwolf/games/gameinfo/
     /** Returns whether the game represented is currently in focus.
@@ -1152,7 +1236,7 @@ interface OverwolfExtensions {
      * @param callback Called with the info.
      * @since 0.91
      */
-    getInfo(id: string, callback: (info: string) => any)
+    getInfo(id: string, callback: (result: ODKCallbackArg & { info: string }) => any)
 
     /**
      * Requests info updates for extension. Will also be called when the extension launches/closes.
@@ -1349,10 +1433,10 @@ interface ODKExtensionMetadata {
     /**Mandatory. Version of your app. Needs to be in the format of X.X.X where the X’s are numbers. @since 0.78 */
     version: string
     /**Mandatory. Minimum version of the Overwolf Client with which the app is compatible. The format is similar to the version field. @since 0.78 */
-        "minimum-overwolf-version": string
+    "minimum-overwolf-version": string
 
     /**A name in a Java-namespace-like format (com.[company].[product]) uniquely identifying the extension. @since 0.78 */
-        "access-name": string
+    "access-name": string
     /**Mandatory. The description of your app on the Appstore tile. Limited to 180 characters. @since 0.78 */
     description: string
 
@@ -1408,7 +1492,7 @@ interface ODKManifest { // TODO - update with http://developers.overwolf.com/doc
          * Causes links in the app to be opened using the user’s default browser or Overwolf’s browser. Takes ‘user’ and ‘overwolf’ (case insensitive).
          * @since 0.91.200
          * */
-        force_browser: "user"|"overwolf",
+        force_browser: "user" | "overwolf",
         //     "plugins": [
         //         "npSimpleIOPlugin.dll"
         //         ],
@@ -1484,9 +1568,15 @@ interface LocateServiceEvent<TServiceType> extends OverwolfEventArgs {
 interface OverwolfProfile {
     /**
      * Get the current user.
+     * "status": "success",
+     * "username": "username",
+     * "userId": "OW_44f4533c-7704-39b1-6560-36bd14d26d99",
+     * "machineId": "00ea040e-af74-5046-6c8f-57a27dc20fb7",
+     * "partnerId": 3713,
+     * "channel": "Regular" // TODO: possible channels type
      * @param {any) => void} callback A callback to invoke with the current user or an error.
      */
-    getCurrentUser(callback: (user: any) => void): void;
+    getCurrentUser(callback: (res: ODKCallbackArg & { username: string, userId: string, machineId: string, partnerId: number, channel: string }) => void): void;
 
     /** Open the login dialog. */
     openLoginDialog(): void;
@@ -1507,13 +1597,8 @@ interface LoginStateChangedEvent extends OverwolfEventArgs {
 ///////
 /// overwolf.utils
 //////
-interface OverwolfUtils {
-    /**
-     * Place the given data on the clipboard.
-     * Requires the Clipboard permission.
-     * @param {string} data The data to place on the clipboard.
-     */
-    placeOnClipboard(data: string): void;
+interface OverwolfUtils { // http://developers.overwolf.com/documentation/sdk/overwolf/utils
+// TODO: full update and typings
     /**
      * Returns the data currently on the clipboard.
      * Requires the Clipboard permission.
@@ -1529,14 +1614,71 @@ interface OverwolfUtils {
     getMonitorsList(callback: (monitors: Array<any>) => void): void;
 
     /**
+     * Returns system peripherals information.
+     * @since 0.98.0
+     * */
+    getPeripherals(callback: any): void // TODO: typing
+
+    /** Returns system information which includes information about CPU, Monitors, GPU, HDD, RAM and more.
+     * @since 0.92.200
+     */
+    getSystemInformation(callback: any): void // TODO: typing
+
+    /** Returns whether the current device has touch capabilities.
+     * @since 0.91.100
+     */
+    isTouchDevice(callback: any): void // TODO: typing
+
+    /**
+     * Opens the app-store page for the app with the given id
+     * @undocumented
+     * */
+    openStoreOneAppPage(uid: string)
+
+    /** Opens the url in Overwolf’s browser.
+     * @since 0.91.200 */
+    openUrlInOverwolfBrowser(url: string): void
+
+    /** Opens the url in the user’s default browser.
+     * @since  0.91.200 */
+    openUrlInDefaultBrowser(url: string): void
+
+    /**
+     * Opens Windows Explorer and selects a file received as an Overwolf media url.
+     * @since 0.91.200
+     */
+    openWindowsExplorer(url: ODKMediaUrl, callback: any): void // TODO: typings
+
+    /**
+     * Opens a file picker dialog to browse for a file. A url to the selected file will be returned.
+     * @dependency Permissions required: FileSystem
+     * @param filter A file filter. Supports wild cards (*) and seperated by commas (,). Ex. myFile*.*,*.txt
+     * @param callback Called with a url to the selected file.
+     * @since 0.91.100
+     */
+    openFilePicker(filter: string, callback: any) // TODO: typings
+    /**
+     * Place the given data on the clipboard.
+     * Requires the Clipboard permission.
+     * @param {string} data The data to place on the clipboard.
+     */
+    placeOnClipboard(data: string): void;
+
+    /**
      * Send a key stroke to the game. Requires the GameControl permission.
      * @param {string} keyString The keystroke to send.
      */
     sendKeyStroke(keyString: string): void;
 }
 
+/** An overwolf media url (overwolf://media/*) */
+type ODKMediaUrl = string
+
 interface OverwolfIO { // TODO http://developers.overwolf.com/documentation/sdk/overwolf/io/
     fileExists: (arg, callback) => any // TODO
+    writeFileContents: (filePath, content, encoding, triggerUacIfRequired, callback) => any
+    /** @undocumented */
+    readFileContents: (filePath, encoding, callback) => any
 }
 
 declare var overwolf: Overwolf.Static;
