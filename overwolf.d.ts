@@ -508,11 +508,22 @@ interface StartStreamEventArgs extends OverwolfEventArgs {
 
 ///////
 /// overwolf.windows
+/// updated: 2018/May/13
+/// http://developers.overwolf.com/documentation/sdk/overwolf/windows/
 //////
-interface OverwolfWindows { // TODO: update
+interface OverwolfWindows {
+
+    /**
+     * Returns a window object of the index page.
+     * @return Window window declared as "Main" within manifest
+     * @since 0.113.1
+     */
+    getMainWindow()
+
     /**
      * Calls the given function with the current window object as a parameter.
      * @param {ODKWindow) => void} callback will be called with the current window object as a parameter.
+     * @since 0.78
      */
     getCurrentWindow(callback: (arg: ODKCallbackArg & { window: ODKWindow }) => void): void;
 
@@ -520,19 +531,15 @@ interface OverwolfWindows { // TODO: update
      * Creates or returns a window by the window name that was declared in the manifest.
      * @param windowName The name of the window that was declared in the data.windows section in the manifest.
      * @param callback A callback function which will be called with the requested window as a parameter.
+     * @since 0.78
      */
     obtainDeclaredWindow(windowId: ODKWindowId, callback: (arg: ODKCallbackArg & { window: ODKWindow }) => void): void;
-
-    /**
-     * Returns an all open windows as objects. The objects can be manipulated like any other window
-     * @since 0.92.200
-     */
-    getOpenWindows(callback: (result: { [windowName: string]: Window }) => void): void;
 
     /**
      * Start dragging a window.
      * @param {string} windowId The ID of the window to drag.
      * @param {function} callback called when the drag is finished.
+     * @since 0.78
      */
     dragMove(windowId: ODKWindowId, callback?: () => void): void;
 
@@ -540,8 +547,18 @@ interface OverwolfWindows { // TODO: update
      * Start resizing the window from a specific edge or corner.
      * @param {string}         windowId The ID of the window to resize.
      * @param {ODKWindowDragEdge} edge     The edge or corner from which to resize the window.
+     * @since 0.78
      */
     dragResize(windowId: ODKWindowId, edge: ODKWindowDragEdge): void;
+
+    /**
+     * Start resizing the window from a specific edge or corner.
+     * @param {ODKWindowId} windowId The id or name of the window to resize.
+     * @param {ODKWindowDragEdge} edge The edge or corner from which to resize the window.
+     * @param contentRect The real content of the window (for the ingame drawing resizing white area)
+     * @since 0.100
+     */
+    dragResize(windowId: ODKWindowId, edge: ODKWindowDragEdge, contentRect: ODKRect):void
 
     /**
      * Change the window size to the new width and height in pixels.
@@ -549,6 +566,7 @@ interface OverwolfWindows { // TODO: update
      * @param {number} width    The new window width in pixels
      * @param {number} height   The new window height in pixels
      * @param {()  =>       void} callback A callback which is called when the size change is completed.
+     * @since 0.78
      */
     changeSize(windowId: ODKWindowId, width: number, height: number, callback?: () => void): void;
 
@@ -558,6 +576,7 @@ interface OverwolfWindows { // TODO: update
      * @param {number} width    The new window position on the X axis.
      * @param {number} height   The new window position on the Y Axis.
      * @param {()  =>       void} callback A callback which is called when the position change is completed.
+     * @since 0.78
      */
     changePosition(windowId: ODKWindowId, left: number, top: number, callback?: () => void): void;
 
@@ -565,6 +584,7 @@ interface OverwolfWindows { // TODO: update
      * Closes the window.
      * @param {string} windowId The ID of the window to close.
      * @param {()  =>       void}        callback Called after the window is closed.
+     * @since 0.78
      */
     close(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & { window_id: string }) => void): void;
 
@@ -572,6 +592,7 @@ interface OverwolfWindows { // TODO: update
      * Minimizes the window.
      * @param windowId The ID or name of the window to minimize.
      * @param callback Called after the window is minimized.
+     * @since 0.78
      */
     minimize(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & { window_id: string }) => void): void;
 
@@ -579,6 +600,7 @@ interface OverwolfWindows { // TODO: update
      * Maximizes the window.
      * @param {string} windowId The ID of the window to maximize.
      * @param {()  =>       void}        callback Called after the window is maximized.
+     * @since 0.81.7
      */
     maximize(windowId: ODKWindowId, callback?: () => void): void;
 
@@ -587,15 +609,25 @@ interface OverwolfWindows { // TODO: update
      * NOTE: currently (0.97) only works with the windowId, not the name
      * @param {string} windowId The ID of the window to restore.
      * @param {()  =>       void}        callback Called after the window is restored.
+     * @since 0.78
      */
     restore(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg & { window_id: string }) => void): void;
 
+    /**
+     * Hides the window from screen and taskbar.
+     * @since 108.1
+     * @param {ODKWindowId} windowId The id or name of the window to hide.
+     * @param {(arg: ODKCallbackArg) => void} callback Called after the window was hidden.
+     * @since 0.108.1
+     */
+    hide(windowId: ODKWindowId, callback?: (arg: ODKCallbackArg) => void): void;
 
     /**
      * BUG: nonexisting window-ids do report the window as closed instead of giving an error
      * Returns the state of the window (normal/minimized/maximized/closed).
      * @param windowId The id or name of the window.
      * @param callback Called with the window state.
+     * @since 0.85
      */
     getWindowState(windowId: ODKWindowId,
                    callback: (arg: ODKCallbackArg & { window_id: string, window_state: ODKWindowStates }) => void
@@ -608,6 +640,35 @@ interface OverwolfWindows { // TODO: update
     getWindowsStates(callback: (arg: ODKCallbackArg & { result: { [windowName: string]: ODKWindowStates } }) => void): void
 
     /**
+     * Opens the options page specified in the manifest file. Does nothing if no such page has been specified.
+     * @param {(arg: ODKCallbackArg) => void} callback called when the page is opened
+     * @since 0.89
+     */
+    openOptionsPage(callback: (arg: ODKCallbackArg) => void): void
+
+    /**
+     * Sets whether the window should be injected to games or not.
+     * @param windowId The id or name of the window.
+     * @param shouldBeDesktopOnly
+     * @param callback
+     * @since 0.89.100
+     */
+    setDesktopOnly(windowId: ODKWindowId, shouldBeDesktopOnly: boolean,
+                   callback: (arg: ODKCallbackArg & { window_id: ODKWindowId }) => void
+    ): void
+
+    /**
+     * Sets whether the window should have minimize/restore animations while in game.
+     * @param {ODKWindowId} windowId
+     * @param {boolean} shouldAnimationsBeEnabled
+     * @param callback
+     * @since 0.89.100
+     */
+    setRestoreAnimationsEnabled(windowId: ODKWindowId, shouldAnimationsBeEnabled: boolean,
+                                callback: (arg: ODKCallbackArg & { window_id: ODKWindowId }) => void
+    ): void
+
+    /**
      * Change the window’s topmost status. Handle with care as topmost windows can negatively impact user experience.
      * @param windowId The id or name of the window.
      * @param shouldBeTopmost
@@ -617,15 +678,97 @@ interface OverwolfWindows { // TODO: update
     setTopmost(windowId: ODKWindowId, shouldBeTopmost: boolean, callback: (arg: ODKCallbackArg) => void): void
 
     /**
+     * Sends the window to the back
+     * @param {ODKWindowId} windowId The id or name of the window.
+     * @param {(arg: ODKCallbackArg) => void} callback Called with the result of the request.
+     * @since 0.91.200
+     */
+    sendToBack(windowId: ODKWindowId, callback: (arg: ODKCallbackArg) => void): void
+
+    /**
      * Sends a message to an open window.
+     *
+     * Note: Using sendMessage is not our suggested choice for communication between windows, since it might not work in some occasions (for example, when sending extremely big messages)
+     * Please consider using getOpenWindows() function instead. More info about communication between windows can be
+     * found [here]{@link http://developers.overwolf.com/documentation/sdk/overwolf/windows/#windows-communication}.
+     *
      * @param windowId The id or name of the window to send the message to.
      * @param messageId An arbitrary message id.
      * @param messageContent The content of the message.
      * @param callback Called with the status of the request
+     * @since 0.92.200
      */
     sendMessage(windowId: ODKWindowId, messageId: string, messageContent: ODKMessageContent,
                 callback: (result: ODKCallbackArg) => void
     )
+
+    /**
+     * Add Window In Game styling (for example, allowing mouse clicks to be passed through the window into the game)
+     * @param {ODKWindowId} windowId The id or name of the window to add style to.
+     * @param {ODKWindowStyle} style The style to be added
+     * @param {(result: ODKCallbackArg) => void} callback Called with the status of the request
+     * @since 0.89.200
+     */
+    setWindowStyle(windowId: ODKWindowId, style: ODKWindowStyle,
+                   callback: (result: ODKCallbackArg) => void)
+
+
+    /**
+     * Remove window style
+     * @param {ODKWindowId} windowId The id or name of the window to remove style from.
+     * @param {ODKWindowStyle} style The style to be removed
+     * @param {(result: ODKCallbackArg) => void} callback Called with the status of the request
+     * @since 0.89.200
+     */
+    removeWindowStyle(windowId: ODKWindowId, style: ODKWindowStyle,
+                   callback: (result: ODKCallbackArg) => void)
+
+    /**
+     * WidgetStyleHideFromDesktop
+     * @undocumented */
+    setWidgetStyle(windowId: ODKWindowId, options: { values: string[] })
+
+    /**
+     * WidgetStyleHideFromDesktop
+     * @undocumented */
+    removeWidgetStyle(windowId: ODKWindowId, options: { values: string[] })
+
+    /**
+     * Returns an all open windows as objects. The objects can be manipulated like any other window
+     * @since 0.92.200
+     */
+    getOpenWindows(callback: (result: { [windowName: string]: Window }) => void): void;
+
+    /**
+     * Set the current window mute state (on/off)
+     * @param {boolean} shouldBeMuted Window mute state (true - mute is on, false - mute is off)
+     * @param {(arg: ODKCallbackArg) => void} callback Called with the result of the request
+     * @since 0.102.1
+     */
+    setMute(shouldBeMuted: boolean, callback: (arg: ODKCallbackArg) => void)
+
+    /**
+     * Mutes all sound sources for the current window.
+     * (TODO: how is this different from setMute? - just same as setMute(true)??)
+     * TODO: mroe specific doc
+     * @param {(arg: ODKCallbackArg) => void} callback Called with the result of the request.
+     * @since 0.102.1
+     */
+    muteAll(callback: (arg: ODKCallbackArg) => void)
+
+    /**
+     * Visibility state of the window – to be used only with windows without a transparent border.
+     * “hidden” – The window is completely hidden.
+     * “fully” – The window is fully visible to the user.
+     * “partial” – The window is partially visible to the user (and partially covered by other window/s).
+     * @param callback Called with the result of the request:
+     * <br/>{"status": "error","reason": the reason}<br/>
+     * or<br/>
+     * {"status": "success","visible": "hidden" | "fully" | "partial"}
+     * @since 0.102.1
+     */
+    isWindowVisibleToUser(callback: (arg: ODKCallbackArg & {visible: 'hidden' | 'fully' | 'partial'}) => void)
+
 
     /**
      * Fired when the main window is restored.
@@ -638,7 +781,16 @@ interface OverwolfWindows { // TODO: update
      */
     onStateChanged: OverwolfEventDispatcher<ODKWindowStateChangeData>;
 
+    /**
+     * @since 0.92.200
+     */
     onMessageReceived: OverwolfEventDispatcher<ODKMessage>
+
+    /**
+     * Fired when the user was prevented from closing a window using Alt+F4
+     * @since 0.113.1
+     */
+    onAltF4Blocked: OverwolfEventDispatcher<any> // TODO: event typing
 }
 
 type ODKWindowDragEdge =
@@ -654,6 +806,12 @@ type ODKWindowDragEdge =
 
 type ODKWindowStates = 'normal' | 'minimized' | 'maximized' | 'closed'
 
+/**
+ * inputPassThrough: Mouse and keyboard input will pass through the window to the game (no input blocking)
+ * An object which specifies the window style (used by setWindowStyle, removeWindowStyle)
+ */
+type ODKWindowStyle = 'inputPassThrough'
+
 interface ODKWindowStateChangeData {
     app_id: string
     window_id: ODKWindowId
@@ -666,6 +824,7 @@ interface ODKWindowStateChangeData {
 interface ODKMessageContent {
     [key: string]: string | string[] | number | number[] | boolean | ODKMessageContent
 }
+
 
 interface ODKMessage {
     id: string
@@ -759,6 +918,34 @@ interface ScreenshotEventArgs extends OverwolfEventArgs {
     url: string;
 }
 
+interface ODKRect {
+    top: number
+    left: number
+    width: number
+    height: number
+}
+
+interface ODKLauncherInfo {
+    /** Returns the title of the represented launcher. */
+    title: string
+    /** Returns the instance id of the represented launcher. */
+    id: number
+    /** Returns the class id of the represented launcher. */
+    classId: number
+    /** Returns whether the launcher represented is currently in focus. */
+    isInFocus: boolean
+    /** Returns the launcher’s window position. */
+    position: ODKRect
+    /** Returns the launcher’s main window handle */
+    handle: ODKWindowId // TODO: check if this is right
+    /** Returns the launcher’s process command-line. */
+    commandLine: string
+    /** Returns the launcher’s process id. */
+    processId: number // TODO: check if this is right
+    /** Returns the process path of the represented launcher. */
+    path: string
+}
+
 ///////
 /// overwolf.games
 ///////
@@ -769,7 +956,7 @@ interface OverwolfGames {
      * @param {GameInfo) => void} callback Called with the currently running or active game info
      * @since 0.78
      */
-    getRunningGameInfo(callback: (information: ODKRunningGameInfo) => void): void;
+    getRunningGameInfo(callback: (gameInfo?: ODKRunningGameInfo) => void): void;
 
     /**
      * Returns an object with information about the currently running game (or active games, if more than one), or null if no game is running.
@@ -799,7 +986,7 @@ interface OverwolfGames {
          * @since 0.95
          * @updated 2016/12/20 Client v0.101.15
          * */
-        getInfo<F extends Overwolf.GameEvents.AvailableFeaturesMap, T extends Overwolf.GameEvents.GameEventsInfoDB<F>> (callback: Overwolf.GameEvents.InfoCallback<F, T>)
+        getInfo<F extends Overwolf.GameEvents.AvailableFeaturesMap, T extends Overwolf.GameEvents.GameEventsInfoDB<F>>(callback: Overwolf.GameEvents.InfoCallback<F, T>)
         /**
          * Fired when there was an error in the game events system.
          * @since 0.78
@@ -810,16 +997,16 @@ interface OverwolfGames {
          * @since 0.96
          * */
         onInfoUpdates2: {
-            addListener<F extends Overwolf.GameEvents.TFeatures, I extends Overwolf.GameEvents.InfoUpdateData> (callback: Overwolf.GameEvents.InfoUpdateCallback<F, I>)
-            removeListener<F extends Overwolf.GameEvents.TFeatures, I extends Overwolf.GameEvents.InfoUpdateData> (callback: Overwolf.GameEvents.InfoUpdateCallback<F, I>)
+            addListener<F extends Overwolf.GameEvents.TFeatures, I extends Overwolf.GameEvents.InfoUpdateData>(callback: Overwolf.GameEvents.InfoUpdateCallback<F, I>)
+            removeListener<F extends Overwolf.GameEvents.TFeatures, I extends Overwolf.GameEvents.InfoUpdateData>(callback: Overwolf.GameEvents.InfoUpdateCallback<F, I>)
         }
         /**
          * Fired when there are new game events with a JSON object of the events information.
          * @since 0.96
          * */
         onNewEvents: {
-            addListener (callback: Overwolf.GameEvents.NewEventsCallback<Overwolf.GameEvents.EventData<Overwolf.GameEvents.TEvents>>)
-            removeListener (callback: Overwolf.GameEvents.NewEventsCallback<Overwolf.GameEvents.EventData<Overwolf.GameEvents.TEvents>>)
+            addListener(callback: Overwolf.GameEvents.NewEventsCallback<Overwolf.GameEvents.EventData<Overwolf.GameEvents.TEvents>>)
+            removeListener(callback: Overwolf.GameEvents.NewEventsCallback<Overwolf.GameEvents.EventData<Overwolf.GameEvents.TEvents>>)
         }
     }
 
@@ -918,6 +1105,26 @@ interface OverwolfGames {
          * @since 0.78
          */
         onMouseDown: OverwolfListenable<{ button: TODKMouseButton, onGame: boolean, x: number, y: number }>
+    }
+
+    launchers: {
+        /**
+         * Returns an object with information about the currently running launchers.
+         * @callback Called with the currently running detected launchers.
+         * */
+        getRunningLaunchersInfo(callback: (data: { launchers: ODKLauncherInfo[] }) => void)
+        /**
+         * Fired when the launcher info is updated. Passes an ILauncherInfo object.
+         * */
+        onUpdated: OverwolfListenable<ODKLauncherInfo>
+        /**
+         * Fired when a launcher was launched.
+         * */
+        onLaunched: OverwolfListenable<any>
+        /**
+         * Fired when a launcher is closed.
+         * */
+        onTerminated: OverwolfListenable<any>
     }
 
     /** Fired when the game ifno is updated, including game name, game running, game terminated, game changing focus, etc.
@@ -1422,7 +1629,7 @@ interface OverwolfExtensions {
      * The event contain an ‘origin’ string which what triggered the app launch (dock, storeapi, odk, etc…)
      * @since 0.92.300
      */
-    onAppLaunchTriggered: OverwolfListenable<string> // TODO: typing
+    onAppLaunchTriggered: OverwolfListenable<{ origin: "dock" | "storeapi" | "odk" | string, parameter: any }>
 }
 
 interface ODKExtensionMetadata {
@@ -1594,6 +1801,19 @@ interface LoginStateChangedEvent extends OverwolfEventArgs {
     username?: string;
 }
 
+interface ODKDisplay {
+    name: string
+    id: string
+    x: number
+    y: number
+    width: number
+    height: number
+    is_primary: boolean
+    handle: {
+        value: number
+    }
+}
+
 ///////
 /// overwolf.utils
 //////
@@ -1611,7 +1831,7 @@ interface OverwolfUtils { // http://developers.overwolf.com/documentation/sdk/ov
      * Get the list of monitors active. Requires the DesktopStreaming permission.
      * @param {Array<any>) => void} callback An array of monitors.
      */
-    getMonitorsList(callback: (monitors: Array<any>) => void): void;
+    getMonitorsList(callback: (data: { displays: ODKDisplay[] }) => void): void;
 
     /**
      * Returns system peripherals information.
