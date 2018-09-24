@@ -1,3 +1,5 @@
+# THIS REPOSITORY IS NO LONGER MAINTAINED. PLEASE USE [THIS REPOSITORY](https://github.com/Colorfulstan/overwolf-dts) instead
+
 # Overwolf-types
 typescript definitions for overwolf API
 
