@@ -1,4 +1,4 @@
-# THIS REPOSITORY IS CURRENTLY NO LONGER MAINTAINED.
+# THIS REPOSITORY IS CURRENTLY NOT ACTIVELY MAINTAINED.
 Ideally, there will be a @types version at some point found in [this repo](https://github.com/Colorfulstan/overwolf-dts).
 You still can use this type definitions, and contributions for updates are welcome.
 
@@ -8,14 +8,6 @@ typescript definitions for overwolf API
 originally forked gist from https://gist.github.com/danpantry/f90ec0cd48d73a0accdf
 
 For now just using this repo for typings definition manager dependency but would like to get a maintained defintion out of this somewhen
-
-## Installation
-
-```npm i -g typings```
-
-In your project
-
-```typings install overwolf=github:Colorfulstan/typed-overwolf --global --save```
 
 
 ### TODO
