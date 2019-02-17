@@ -1,5 +1,5 @@
-# ~~THIS REPOSITORY IS CURRENTLY NOT ACTIVELY MAINTAINED.
-Ideally, there will be a @types version at some point found in [this repo](https://github.com/Colorfulstan/overwolf-dts).
+# ~~THIS REPOSITORY IS CURRENTLY NOT ACTIVELY MAINTAINED.~~
+~~Ideally, there will be a @types version at some point found in [this repo](https://github.com/Colorfulstan/overwolf-dts).
 You still can use this type definitions, and contributions for updates are welcome.~~
 
 I started using these definitions again in another project, so might do some minor updates now and then.
